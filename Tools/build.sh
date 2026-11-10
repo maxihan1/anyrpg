@@ -10,6 +10,15 @@ mkdir -p "$ROOT/Builds"
 
 unity() { "$UNITY" -batchmode -quit -nographics -projectPath "$ROOT" -buildTarget "$1" -executeMethod "$2" -logFile "$ROOT/Builds/$3.log"; }
 
+# TextMeshPro 기본 설정(TMP Settings · 기본 글꼴)이 없으면 폰에서 글자가 하나도 안 그려진다 — 처음 한 번 패키지 안 묶음을 가져온다
+tmp_essentials() {
+  [ -f "$ROOT/Assets/TextMesh Pro/Resources/TMP Settings.asset" ] && return
+  local pkg
+  pkg=$(ls "$ROOT"/Library/PackageCache/com.unity.ugui@*/"Package Resources/TMP Essential Resources.unitypackage" | head -1)
+  "$UNITY" -batchmode -quit -nographics -projectPath "$ROOT" -importPackage "$pkg" -logFile "$ROOT/Builds/tmp-essentials.log"
+  [ -f "$ROOT/Assets/TextMesh Pro/Resources/TMP Settings.asset" ] || { echo "TMP Essential Resources 가져오기 실패 — Builds/tmp-essentials.log" >&2; exit 1; }
+}
+
 # control_cli 규칙: 게임 저장소에는 SDK 를 남기지 않는다 — instrument 가 고친 manifest · asmdef 를 빌드 뒤 되돌린다.
 restore() {
   git -C "$ROOT" checkout -- Packages
@@ -20,12 +29,14 @@ restore() {
 
 case "${1:-}" in
   qa)
+    tmp_essentials
     node "$CONTROL_CLI/dist/main.js" instrument "$ROOT" --ref "$CONTROL_CLI_REF"
     trap restore EXIT
     unity Android ShowcaseBuild.AndroidQa android
     ls -lh "$ROOT/Builds/android/anymmo-qa.apk"
     ;;
   server)
+    tmp_essentials
     unity Linux64 ShowcaseBuild.LinuxServer linux-server
     ls -lh "$ROOT/Builds/linux-server/AnyMMOServer.x86_64"
     ;;
