@@ -440,6 +440,17 @@ namespace AnyRPG {
                         break;
                 }
             }
+
+            // 서버 컨테이너가 API 서버 주소 · 비밀을 환경 변수로 넘긴다 — 공개 저장소의 프리팹에 진짜 비밀을 두지 않으려고.
+            string apiServer = Environment.GetEnvironmentVariable("ANYRPG_API_SERVER");
+            if (!string.IsNullOrEmpty(apiServer)) {
+                systemConfigurationManager.ApiServerAddress = apiServer.TrimEnd('/');
+                systemConfigurationManager.ServerBackend = ServerBackend.APIServer;
+            }
+            string apiSecret = Environment.GetEnvironmentVariable("ANYRPG_API_SECRET");
+            if (!string.IsNullOrEmpty(apiSecret)) {
+                systemConfigurationManager.ApiServerSharedSecret = apiSecret;
+            }
         }
 
         private void Update() {
