@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Text;
@@ -844,6 +845,11 @@ namespace AnyRPG {
                     Debug.LogWarning($"RemoteGameServerClient.LoadMailMessageListEnumerator(accountId: {accountId}, playerCharacterId: {playerCharacterId}) getting list failed. status code: {webRequest.responseCode} body: {webRequest.downloadHandler.text}");
                 } else {
                     MailMessageListResponse mailMessageListResponse = JsonUtility.FromJson<MailMessageListResponse>(webRequest.downloadHandler.text);
+                    List<MailMessage> mailMessages = new List<MailMessage>();
+                    foreach (MailMessageSerializedData mailMessageSerializedData in mailMessageListResponse.mailMessages) {
+                        mailMessages.Add(JsonUtility.FromJson<MailMessage>(mailMessageSerializedData.saveData));
+                    }
+                    yield return LoadMissingMailItemsEnumerator(mailMessages);
                     mailService.ProcessMailMessageListResponse(accountId, mailMessageListResponse.mailMessages);
                 }
             }
@@ -923,6 +929,7 @@ namespace AnyRPG {
                     MailMessageSerializedData mailMessageSerializedData = JsonUtility.FromJson<MailMessageSerializedData>(webRequest.downloadHandler.text);
                     MailMessage mailMessage = JsonUtility.FromJson<MailMessage>(mailMessageSerializedData.saveData);
                     if (mailMessage != null) {
+                        yield return LoadMissingMailItemsEnumerator(new List<MailMessage> { mailMessage });
                         mailService.ProcessTakeAttachments(mailMessage, playerCharacterId, accountId);
                     }
                 }
@@ -961,6 +968,7 @@ namespace AnyRPG {
                     MailMessageSerializedData mailMessageSerializedData = JsonUtility.FromJson<MailMessageSerializedData>(webRequest.downloadHandler.text);
                     MailMessage mailMessage = JsonUtility.FromJson<MailMessage>(mailMessageSerializedData.saveData);
                     if (mailMessage != null) {
+                        yield return LoadMissingMailItemsEnumerator(new List<MailMessage> { mailMessage });
                         mailService.ProcessTakeAttachment(mailMessage, playerCharacterId, attachmentslotId);
                     }
                 }
@@ -1087,7 +1095,26 @@ namespace AnyRPG {
             networkManagerServer.StartCoroutine(LoadItemInstanceListEnumerator());
         }
 
+        // 운영툴 우편 지급은 게임 서버가 켜진 뒤 API 에 아이템을 만든다. 켤 때 읽은 목록에 없으면 TakeAttachment 가 첨부를 조용히 지우므로, 우편을 다루기 전에 빠진 것만 다시 읽는다
+        private IEnumerator LoadMissingMailItemsEnumerator(List<MailMessage> mailMessages) {
+            foreach (MailMessage mailMessage in mailMessages) {
+                foreach (MailAttachmentSlot mailAttachmentSlot in mailMessage.AttachmentSlots) {
+                    foreach (long itemInstanceId in mailAttachmentSlot.ItemInstanceIds) {
+                        if (systemItemManager.GetExistingInstantiatedItem(itemInstanceId) == null) {
+                            // ponytail: API 에 번호로 읽는 길이 없어 전체 목록을 받는다. 아이템이 수만 개가 되면 번호 목록으로 읽는 API 를 더한다
+                            yield return LoadItemInstanceListEnumerator(systemItemManager.AddMissingItemInstances);
+                            yield break;
+                        }
+                    }
+                }
+            }
+        }
+
         public IEnumerator LoadItemInstanceListEnumerator() {
+            return LoadItemInstanceListEnumerator(systemItemManager.ProcessLoadAllItemInstances);
+        }
+
+        private IEnumerator LoadItemInstanceListEnumerator(Action<List<ItemInstanceSerializedData>> onLoaded) {
             //Debug.Log($"RemoteGameServerClient.LoadItemInstanceListEnumerator()");
 
             string requestURL = $"{serverAddress}/{getItemInstanceListPath}";
@@ -1112,7 +1139,7 @@ namespace AnyRPG {
                     Debug.LogWarning($"RemoteGameServerClient.LoadItemInstanceListEnumerator() unable to load itemInstance list. status code: {webRequest.responseCode} body: {webRequest.downloadHandler.text}");
                 } else {
                     ItemInstanceListResponse itemInstanceListResponse = JsonUtility.FromJson<ItemInstanceListResponse>(webRequest.downloadHandler.text);
-                    systemItemManager.ProcessLoadAllItemInstances(itemInstanceListResponse.itemInstances);
+                    onLoaded(itemInstanceListResponse.itemInstances);
                 }
             }
         }
