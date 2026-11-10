@@ -5,7 +5,8 @@ using UnityEngine;
 namespace AnyRPG {
     public class AuthenticationService : ConfiguredClass {
 
-        public event Action<int, int, bool, bool> OnAuthenticationResult = delegate { };
+        // 마지막 string 은 로그인 실패 까닭(정지 · 점검) — 클라이언트 실패 창에 그대로 띄운다
+        public event Action<int, int, bool, bool, string> OnAuthenticationResult = delegate { };
         public event Action<int> OnAccountLogin = delegate { };
         public event Action<int> OnAccountLogout = delegate { };
 
@@ -118,7 +119,7 @@ namespace AnyRPG {
             }
         }
 
-        public void ProcessLoginResponse(int clientId, int accountId, bool correctPassword, string token) {
+        public void ProcessLoginResponse(int clientId, int accountId, bool correctPassword, string token, string failureMessage = "") {
             //Debug.Log($"AuthenticationService.ProcessLoginResponse(clientId: {clientId}, accountId: {accountId}, correctPassword: {correctPassword}, token: {token})");
 
             SpawnPlayerRequest spawnPlayerRequest = null;
@@ -153,7 +154,7 @@ namespace AnyRPG {
                 AddLoggedInAccount(clientId, accountId, token);
             }
             loginRequests.Remove(clientId);
-            OnAuthenticationResult(clientId, accountId, true, correctPassword);
+            OnAuthenticationResult(clientId, accountId, true, correctPassword, failureMessage);
 
             if (correctPassword == false) {
                 return;

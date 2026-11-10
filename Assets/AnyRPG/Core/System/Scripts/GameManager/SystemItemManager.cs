@@ -218,6 +218,21 @@ namespace AnyRPG {
             return null;
         }
 
+        // 서버가 켜진 뒤 API 에 생긴 아이템(운영툴 우편 지급)만 더 올린다 — 켤 때 쓰는 ProcessLoadAllItemInstances 는 겹치는 번호마다 경고를 찍고 경매장까지 다시 읽는다
+        public void AddMissingItemInstances(List<ItemInstanceSerializedData> itemInstances) {
+            foreach (ItemInstanceSerializedData itemInstanceSerializedData in itemInstances) {
+                if (instantiatedItems.ContainsKey(itemInstanceSerializedData.itemInstanceId)) {
+                    continue;
+                }
+                ItemInstanceSaveData itemInstanceSaveData = JsonUtility.FromJson<ItemInstanceSaveData>(itemInstanceSerializedData.saveData);
+                if (itemInstanceSaveData == null || itemInstanceSaveData.ItemInstanceId == -1) {
+                    Debug.LogWarning($"SystemItemManager.AddMissingItemInstances(): bad save data for id {itemInstanceSerializedData.id}.  This item will be skipped.");
+                    continue;
+                }
+                LoadItemInstanceSaveData(itemInstanceSaveData);
+            }
+        }
+
         public void LoadItemInstanceListSaveData(ItemInstanceListSaveData itemInstanceListSaveData) {
             //Debug.Log($"SystemItemManager.LoadItemInstanceListSaveData(count: {itemInstanceListSaveData.ItemInstances.Count})");
 

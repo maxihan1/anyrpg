@@ -87,12 +87,9 @@ Assets/TextMesh*
 Assets/UMA*
 Assets/UnusedExternalContent*
 AssetBundles/
-Assets/FishNet*
 Assets/DefaultPrefabObjects*
 Assets/AnyRPG/Addons/anyrpg-uma
 Assets/AnyRPG/Addons/anyrpg-uma*
-Assets/AnyRPG/Addons/anymmo-fishnet
-Assets/AnyRPG/Addons/anymmo-fishnet*
 Assets/AnyRPG/Addons/anymmo-fishnet-uma
 Assets/AnyRPG/Addons/anymmo-fishnet-uma*
 Assets/AnyRPG/Addons/anyrpg-movement-test-game
@@ -116,3 +113,9 @@ Assets/Settings*
 # VS Code
 .vscode/
 *.slnx
+
+# 시연 포크: AnyMMO 애드온 · FishNet 배포판은 저장소에 담는다(받자마자 빌드되게). 빌드가 만드는 부산물만 뺀다
+Assets/AddressableAssetsData*
+Assets/AnyRPG/Core/AddressableAssetsData/link.xml*
+Assets/AnyRPG/Core/AddressableAssetsData/Android*
+Assets/AnyRPG/Core/AddressableAssetsData/Linux*
