@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AnyMMO 데모를 굽는다 — qa: control_cli SDK 를 넣은 Android APK(넣은 흔적은 끝나면 되돌림) · server: Linux 헤드리스 게임 서버
+# AnyMMO 데모를 빌드한다 — qa: control_cli SDK 를 넣은 Android APK(넣은 흔적은 끝나면 되돌림) · server: Linux 헤드리스 게임 서버
 set -euo pipefail
 
 UNITY=${UNITY:-/Applications/Unity/Hub/Editor/6000.3.10f1/Unity.app/Contents/MacOS/Unity}

@@ -1,4 +1,4 @@
-// 시연용 AnyMMO 데모를 명령줄에서 Android QA APK · Linux 헤드리스 게임 서버로 굽는 빌드 진입점
+// 시연용 AnyMMO 데모를 명령줄에서 Android QA APK · Linux 헤드리스 게임 서버로 빌드하는 진입점
 using System;
 using System.Linq;
 using UnityEditor;
