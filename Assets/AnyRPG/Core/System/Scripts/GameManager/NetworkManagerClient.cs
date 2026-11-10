@@ -67,6 +67,8 @@ namespace AnyRPG {
         private InteractionManagerClient interactionManagerClient = null;
 
         public string Username { get => username; }
+        // 마지막 로그인 실패 까닭 — 실패 창이 열릴 때 읽는다
+        public string LoginFailureMessage { get; private set; } = string.Empty;
         public string Password { get => password; }
         public NetworkServerMode ClientMode { get => clientMode; }
         public Dictionary<int, LoggedInAccount> LobbyGamePlayerList { get => lobbyGamePlayerList; }
@@ -233,9 +235,10 @@ namespace AnyRPG {
             OnClientVersionFailure(requiredClientVersion);
         }
 
-        public void ProcessAuthenticationFailure() {
+        public void ProcessAuthenticationFailure(string failureMessage) {
             //Debug.Log($"NetworkManagerClient.ProcessAuthenticationFailure()");
 
+            LoginFailureMessage = failureMessage;
             uIManager.loginInProgressWindow.CloseWindow();
             uIManager.loginFailedWindow.OpenWindow();
         }

@@ -153,6 +153,7 @@ MonoBehaviour:
   - {fileID: 5864937911679913955}
   subPanels: []
   hintBarController: {fileID: 0}
+  failureMessage: {fileID: 1026395738103766880}
 --- !u!114 &3989129407494939074
 MonoBehaviour:
   m_ObjectHideFlags: 0

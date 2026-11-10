@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.Globalization;
 using System.Net;
 using System.Text;
 using UnityEngine;
@@ -96,12 +98,42 @@ namespace AnyRPG {
                 yield return webRequest.SendWebRequest();
                 //Debug.Log($"RemoteGameServerClient.GetLoginTokenEnumerator() status code: {webRequest.responseCode} body: {webRequest.downloadHandler.text}");
                 if (webRequest.responseCode != (long)HttpStatusCode.OK) {
-                    authenticationService.ProcessLoginResponse(clientId, -1, false, string.Empty);
+                    authenticationService.ProcessLoginResponse(clientId, -1, false, string.Empty, LoginFailureText(webRequest.downloadHandler.text));
                 } else {
                     LoginResponse loginResponse = JsonUtility.FromJson<LoginResponse>(webRequest.downloadHandler.text);
                     authenticationService.ProcessLoginResponse(clientId, loginResponse.accountId, true, loginResponse.token);
                 }
             }
+        }
+
+        [Serializable]
+        private class LoginFailureBody {
+            public string code;
+            public string message;
+            public string until;
+        }
+
+        // 운영툴이 건 정지(403 SUSPENDED) · 점검(503 MAINTENANCE)을 사람이 읽을 문구로 — 비밀번호가 틀린 것처럼 다른 실패는 빈 문자열(창 기본 문구)
+        public static string LoginFailureText(string body) {
+            LoginFailureBody failure;
+            try {
+                failure = JsonUtility.FromJson<LoginFailureBody>(body);
+            } catch (ArgumentException) {
+                return string.Empty;
+            }
+            if (failure == null) {
+                return string.Empty;
+            }
+            string title = failure.code == "SUSPENDED" ? "Account suspended" : failure.code == "MAINTENANCE" ? "Server maintenance" : null;
+            if (title == null) {
+                return string.Empty;
+            }
+            string text = string.IsNullOrEmpty(failure.message) ? title : $"{title}\n{failure.message}";
+            // API 는 UTC 로 저장한다 — 게임 서버(UTC)에서 만든 문구라 기기 시간대로 바꾸지 않고 UTC 를 붙인다.
+            if (DateTime.TryParse(failure.until, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out DateTime until)) {
+                text += $"\nUntil {until:yyyy-MM-dd HH:mm} UTC";
+            }
+            return text;
         }
 
         public void ServerLogin(string sharedSecret) {
