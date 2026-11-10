@@ -8,6 +8,7 @@ using UnityEditor.Build.Reporting;
 
 public static class ShowcaseBuild {
     // 장면 목록은 애드온이 들고 오는 빌드 프로필을 그대로 따른다 — 애드온이 장면을 더해도 여기를 안 고쳐도 되게.
+    private const string CiKeystore = "Builds/ci-debug.keystore";
     private const string ProfilePath = "Assets/AnyRPG/Addons/anymmo-fishnet/Build Profiles/AnyMMO Demo Game.asset";
 
     // control_cli instrument 를 돌린 뒤 부른다 — CONTROL_CLI 가 있어야 SDK 코드가 빌드에 들어간다.
@@ -15,6 +16,14 @@ public static class ShowcaseBuild {
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, "com.maxihan.anymmo");
         PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
         PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+        // CI 는 빌드마다 디버그 키가 새로 생겨 폰에 덮어 깔리지 않는다 — 워크플로가 고정 키를 이 자리에 풀어 두면 그 키로 서명한다
+        if (System.IO.File.Exists(CiKeystore)) {
+            PlayerSettings.Android.useCustomKeystore = true;
+            PlayerSettings.Android.keystoreName = CiKeystore;
+            PlayerSettings.Android.keystorePass = "android";
+            PlayerSettings.Android.keyaliasName = "androiddebugkey";
+            PlayerSettings.Android.keyaliasPass = "android";
+        }
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
         Build(new BuildPlayerOptions {
             scenes = Scenes(),
