@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 8596961643164384451}
   - component: {fileID: 349439365473122481}
   - component: {fileID: -1346495468030016341}
+  - component: {fileID: 6120451027830042877}
   m_Layer: 0
   m_Name: FishNetNetworkManager
   m_TagString: Untagged
@@ -186,3 +187,20 @@ MonoBehaviour:
   _stateOrder: 1
   _dropExcessiveReplicates: 1
   _maximumServerReplicates: 15
+--- !u!114 &6120451027830042877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 48716581094196645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 362dfd7e6009fb44c90beec3df0ad853, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _useWss: 1
+  _mtu: 1023
+  _port: 7770
+  _maximumClients: 2000
+  _clientAddress: localhost
